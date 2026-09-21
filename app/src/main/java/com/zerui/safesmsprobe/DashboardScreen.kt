@@ -7,7 +7,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -272,7 +272,7 @@ fun DashboardScreen(state: DashboardState, onBack: () -> Unit) {
                 )
             }
             if (events.isEmpty()) item { Text("暂无符合条件的事件；较早事件可能超出最近 100 条范围。") }
-            items(events, key = { it.getString("id") }) { event ->
+            itemsIndexed(events, key = { index, event -> timelineEventKey(index, event) }) { _, event ->
                 Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     Text(DashboardFormat.time(event.getLong("at")) + "  " +
                         (mapOf("unlock" to "解锁", "lock" to "锁屏", "screen_on" to "亮屏", "screen_off" to "熄屏", "reset" to "采集边界重置")[event.getString("kind")] ?: "其他事件"))

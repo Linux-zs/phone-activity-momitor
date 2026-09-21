@@ -28,4 +28,10 @@ class DashboardSnapshotTest {
             assertNull(JSONObject(json).flagOrNull("flag"))
         }
     }
+
+    @Test fun publicTimelineEventsDoNotNeedPrivateIds() {
+        val event = JSONObject("""{"at":1789948800000,"kind":"unlock"}""")
+        assertFalse(event.has("id"))
+        assertEquals("3:1789948800000:unlock", timelineEventKey(3, event))
+    }
 }

@@ -17,6 +17,10 @@ fun JSONObject.flagOrNull(key: String): Boolean? = when (val value = opt(key)) {
     else -> null
 }
 fun JSONArray.objects(): List<JSONObject> = (0 until length()).map { getJSONObject(it) }
+// Public dashboard events deliberately omit the private database id. Compose still needs a
+// stable, unique key when two events share the same timestamp and kind, so include the position.
+fun timelineEventKey(index: Int, event: JSONObject): String =
+    listOf(index, event.getLong("at"), event.getString("kind")).joinToString(":")
 object DashboardFormat {
     private val zone = ZoneId.of("Asia/Shanghai")
     fun date(at: Long): String = Instant.ofEpochMilli(at).atZone(zone).toLocalDate().toString()
