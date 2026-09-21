@@ -1,0 +1,2 @@
+059a1a94335af1e51156b7638f60a9d35427abe35fda2db2b2c82d56527f7537  手机活动记录-v0.4-debug.apk
+bff24b83af2581c29e88be30a34eeffa444a58d1b81d93419c8fa8faf6306be8  phone-activity-server-v0.4.0.tar.gz

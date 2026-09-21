@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  {% if preview %}<meta name="synthetic-preview" content="true">{% endif %}
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#0b0c10">
+  <title>亮屏之间 · 屏幕时间</title>
+  <link rel="icon" href="/static/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="/static/dashboard.css">
+  <script src="/static/dashboard.js" defer></script>
+</head>
+<body>
+  <a class="skip" href="#main">跳到内容</a>
+  <div class="page">
+    <main id="main">
+      <section class="intro" aria-label="统计摘要与日期">
+        <div><p id="day-description">亮起的片刻，组成一天的节奏。</p></div>
+        <div class="dateline"><div class="date-picker"><button id="previous-day" type="button" aria-label="前一天">‹</button><label><span class="sr-only">选择日期</span><input id="day-picker" type="date" aria-label="选择日期"></label><button id="next-day" type="button" aria-label="后一天">›</button></div><span id="status" class="status" aria-live="polite">正在读取</span><span id="issue-date" hidden></span><span id="issue-weekday" hidden></span></div>
+      </section>
+      <div id="load-error" class="notice" role="alert" hidden></div>
+
+      <div class="ms-grid">
+        <section class="ms-cell ms-a ms-accent" data-speed="0.011" aria-labelledby="daily-heading"><div class="ms-in">
+          <div class="card-heading"><h2 id="daily-heading" class="ms-lb">今日亮屏</h2><span id="selected-date" class="mono">—</span></div>
+          <div class="ms-hero"><div class="ms-hero-n"><strong id="screen" class="duration">—</strong></div><p id="screen-note" class="ms-cap ms-a-note">仅累计有起止的完整亮屏区间</p></div>
+          <div class="week-block"><div id="week-chart" class="week-chart" aria-label="近 7 天亮屏时长，点击切换日期"></div></div>
+        </div></section>
+        <section class="ms-cell ms-b" data-speed="0.013" aria-labelledby="battery-heading"><div class="ms-in">
+          <div class="card-heading"><h2 id="battery-heading" class="ms-lb">上报时电量</h2><span id="charging" class="mono">—</span></div>
+          <div class="ms-b-row"><div class="ms-b-n"><span id="battery">—</span><small>%</small></div><svg id="battery-curve" class="ms-b-curve" viewBox="0 0 480 60" preserveAspectRatio="none" role="img" aria-label="所选日期的已上报电量"></svg></div>
+          <p id="battery-note" class="ms-cap">尚无电量记录</p>
+        </div></section>
+        <section class="ms-cell ms-c ms-soft" data-speed="0.013" aria-labelledby="peak-heading"><div class="ms-in">
+          <h2 id="peak-heading" class="ms-lb">亮屏高峰</h2><div id="peak-time" class="ms-c-n">—</div><p id="peak-note" class="ms-cap">尚无完整亮屏区间</p>
+        </div></section>
+        <section class="ms-cell ms-d ms-bare" data-speed="0.014" aria-labelledby="timeline-heading"><div class="ms-in">
+          <div class="ms-d-top"><h2 id="timeline-heading" class="ms-lb">全天亮屏时间轴</h2><span id="timeline-note" class="ms-cap">每格 10 分钟 · 橙色为亮屏高峰</span></div>
+          <div class="timeline-scroll" tabindex="0" role="region" aria-label="全天亮屏时间轴，手机端可横向滑动"><div class="timeline-inner"><div id="day-timeline" class="ms-dots" role="img" aria-label="正在读取亮屏区间"></div><div class="ms-d-ruler"><span>00:00</span><span>06:00</span><span>12:00</span><span>18:00</span><span>24:00</span></div></div></div><output id="timeline-tip" class="timeline-tip" aria-live="polite"></output>
+        </div></section>
+        <section class="ms-cell ms-e ms-inkcard" data-speed="0.015" aria-labelledby="recent-heading"><div class="ms-in">
+          <h2 id="recent-heading" class="ms-lb">最近一次解锁</h2><div id="last-time" class="ms-e-n">—:—</div><p id="last-date" class="ms-cap">尚无解锁记录</p><p class="fine-print">记录时间，不代表当前在线状态</p>
+        </div></section>
+        <section class="ms-cell ms-f" data-speed="0.015" aria-labelledby="duration-heading"><div class="ms-in">
+          <h2 id="duration-heading" class="ms-lb">亮屏 / 解锁后亮屏</h2><div class="ms-f-row"><svg id="screen-ring" viewBox="0 0 48 48" role="img" aria-label="已记录亮屏占比"><circle cx="24" cy="24" r="19" fill="none" stroke="#dde2ec" stroke-width="6"/><circle id="screen-arc" class="ms-arc" cx="24" cy="24" r="19" fill="none" stroke="#3b6ef0" stroke-width="6" stroke-linecap="round" transform="rotate(-90 24 24)" stroke-dasharray="119.38" stroke-dashoffset="119.38"/><text id="ring-label" x="24" y="28" text-anchor="middle" font-size="11" font-weight="700" fill="#101725">—</text></svg><div class="ms-f-dl"><div><span>亮屏</span><b id="screen-total">—</b></div><div><span>解锁后</span><b id="unlocked">—</b></div><div><span id="ratio-caption">占已过时间</span><b id="screen-ratio">—</b></div></div></div>
+        </div></section>
+        <section class="ms-cell ms-g ms-soft" data-speed="0.015" aria-labelledby="bounds-heading"><div class="ms-in">
+          <h2 id="bounds-heading" class="ms-lb">首次解锁 · 最后锁定</h2><div class="ms-g-l"><div><span>首次解锁</span><span class="dl"></span><b id="first-unlock">—</b></div><div><span>最后锁定</span><span class="dl"></span><b id="last-lock">—</b></div><div><span>已记录跨度</span><span class="dl"></span><b id="wake-span">—</b></div></div>
+        </div></section>
+      </div>
+      <div class="extra-grid">
+        <section class="card unlock-card" aria-labelledby="unlock-heading"><div class="card-heading"><h2 id="unlock-heading">当日解锁</h2></div><div class="metric-value"><strong id="unlocks">—</strong><span>次</span></div><p class="card-caption">所选日期 · 每次锁屏消失记为一次解锁</p></section>
+        <section class="card sync-card" aria-labelledby="sync-heading"><div class="card-heading"><h2 id="sync-heading">同步摘要</h2><span class="card-symbol" aria-hidden="true">↻</span></div><dl class="sync-meta"><div><dt>最近收到</dt><dd id="received">—</dd></div><div><dt>采集截至</dt><dd id="covered">—</dd></div><div><dt>采集权限</dt><dd id="permission">—</dd></div></dl><p id="sync-note" class="card-caption">正在读取同步信息…</p></section>
+      </div>
+        <section id="history" class="history" aria-labelledby="history-heading">
+          <div class="section-heading"><div><h2 id="history-heading">日子的节奏</h2><p>每日解锁次数 <span class="legend-dot" aria-hidden="true"></span></p></div><div class="range-switch" role="group" aria-label="记录范围"><button type="button" data-range="7" aria-pressed="true">近 7 天</button><button type="button" data-range="30" aria-pressed="false">近 30 天</button></div></div>
+          <div class="chart-scroll" tabindex="0" role="region" aria-label="每日解锁图表，可横向滚动"><div id="chart" class="chart" aria-label="每日解锁次数图"></div></div>
+          <div class="chart-foot"><span id="chart-start">—</span><span>点击日期查看 · 虚线表示采集不完整</span><span id="chart-end">—</span></div>
+        </section>
+      <p id="coverage-note" class="coverage-note">正在读取采集范围…</p>
+      <section class="log-section" aria-labelledby="log-heading">
+        <div class="section-heading"><div><h2 id="log-heading">片刻回放</h2><p>所选日期 · 从最近 100 条原始事件中筛选</p></div><label class="filter-label"><span class="sr-only">事件</span><select id="event-filter"><option value="all">全部事件</option><option value="unlock">只看解锁</option><option value="screen_on">只看亮屏</option><option value="screen_off">只看熄屏</option><option value="lock">只看锁屏</option></select></label></div>
+        <ol id="events" class="events"><li class="empty">正在读取片刻…</li></ol><button id="more-events" class="more-events" type="button" aria-expanded="false" hidden>展开更多记录 ↓</button>
+      </section>
+      <details class="reading-notes"><summary>关于这些记录 <span aria-hidden="true">＋</span></summary><div><p>这里公开展示最近 30 天的解锁、亮屏记录与上报摘要。任何人都可以查看，无需密码。目前不采集或展示具体 App 使用明细。</p><p>手机按采集设置尝试同步（默认 30 分钟），系统后台限制可能造成延迟。超过两小时未收到上报，会标记为数据已过期；这不代表人身异常。</p><p>时长仅累计有起止且处于采集范围内的区间。缺失数据不等于没有使用，解锁也不证明操作者身份。所有日期按北京时间展示。</p></div></details>
+    </main>
+    <footer><span>亮屏之间 <span class="footer-dot">·</span> 留白给屏幕之外的生活</span><span class="mono">SCREEN ON. LIFE GOES ON.</span></footer>
+  </div>
+</body>
+</html>

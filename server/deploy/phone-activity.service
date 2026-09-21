@@ -1,0 +1,22 @@
+[Unit]
+Description=Private phone activity dashboard
+After=network.target
+
+[Service]
+Type=simple
+User=phone-activity
+Group=phone-activity
+WorkingDirectory=/opt/phone-activity
+EnvironmentFile=/etc/phone-activity/service.env
+ExecStart=/opt/phone-activity/.venv/bin/python -m uvicorn activity.main:create_app --factory --host 127.0.0.1 --port 8765 --workers 1 --proxy-headers --forwarded-allow-ips=127.0.0.1 --no-access-log
+Restart=on-failure
+RestartSec=5
+UMask=0077
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectHome=true
+ProtectSystem=strict
+ReadWritePaths=/var/lib/phone-activity
+
+[Install]
+WantedBy=multi-user.target
