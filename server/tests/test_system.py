@@ -46,6 +46,7 @@ def upload(client, data):
 
 def test_public_read_private_upload(system):
     client, _ = system
+    assert client.get("/healthz").json() == {"status": "ok"}
     assert client.get("/").status_code == 200
     response = client.get("/api/v1/dashboard")
     assert response.status_code == 200
@@ -198,6 +199,20 @@ def test_mosaic_missing_coverage_never_becomes_screen_time():
     assert sum(day["screen_bins"]) == day["sessions"] == day["longest_ms"] == 0
     assert day["coverage_bins"][60:62] == [300000, 300000]
     assert day["last_lock"] is None  # Screen off is not a lock observation.
+
+
+def test_gap_ending_at_midnight_does_not_mark_next_day_incomplete():
+    midnight = int(datetime(2026, 9, 20, tzinfo=ZONE).timestamp() * 1000)
+    events = [event(midnight - 60000, "screen_on"), event(midnight, "screen_off")]
+    result = aggregate(events, [(midnight, midnight + DAY)], midnight + DAY)
+    days = {day["date"]: day for day in result["daily"]}
+    assert days["2026-09-19"]["incomplete"]
+    assert not days["2026-09-20"]["incomplete"]
+
+
+def test_invalid_upload_configuration_fails_at_startup(tmp_path):
+    with pytest.raises(ValueError, match="upload_hash"):
+        create_app({}, tmp_path / "invalid.db")
 
 
 def test_battery_chart_uses_actual_bounded_public_samples(system):

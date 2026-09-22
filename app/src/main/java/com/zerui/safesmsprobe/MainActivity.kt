@@ -8,6 +8,11 @@ import androidx.activity.compose.BackHandler
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.togetherWith
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -44,10 +49,17 @@ class MainActivity : ComponentActivity() {
                 DashboardRefresh(dashboard, local?.server?.takeIf { local.configured })
                 BackHandler(page != "home") { page = "home" }
                 Surface(Modifier.fillMaxSize().safeDrawingPadding()) {
-                    when (page) {
-                        "settings" -> ActivityScreen { page = "home" }
-                        "details" -> DashboardScreen(dashboard) { page = "home" }
-                        else -> CollectorHome(local, dashboard, onboarding == true, { onboarding = false }, { page = "settings" }, { page = "details" })
+                    AnimatedContent(
+                        targetState = page,
+                        modifier = Modifier.fillMaxSize(),
+                        transitionSpec = { fadeIn(tween(180)) togetherWith fadeOut(tween(120)) },
+                        label = "main-page"
+                    ) { targetPage ->
+                        when (targetPage) {
+                            "settings" -> ActivityScreen { page = "home" }
+                            "details" -> DashboardScreen(dashboard) { page = "home" }
+                            else -> CollectorHome(local, dashboard, onboarding == true, { onboarding = false }, { page = "settings" }, { page = "details" })
+                        }
                     }
                 }
             }
@@ -70,7 +82,7 @@ class MainActivity : ComponentActivity() {
         var cursor by remember { mutableStateOf("0") }
         var lastUpload by remember { mutableStateOf("0") }
         var diagnostic by remember { mutableStateOf("") }
-        var pending by remember { mutableStateOf(0L) }
+        var pending by remember { mutableLongStateOf(0L) }
         var message by remember { mutableStateOf("") }
         var saving by remember { mutableStateOf(false) }
         val scope = rememberCoroutineScope()

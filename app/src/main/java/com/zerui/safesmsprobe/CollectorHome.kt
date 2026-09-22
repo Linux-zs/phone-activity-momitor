@@ -3,8 +3,8 @@ package com.zerui.safesmsprobe
 import android.content.Intent
 import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
-import android.net.Uri
 import android.provider.Settings
+import androidx.core.net.toUri
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.rememberScrollState
@@ -49,7 +49,9 @@ fun rememberLocalStatus(): LocalStatus? {
                     val periodic = wm.getWorkInfosForUniqueWork(ActivityWork.PERIODIC).get()
                     fun List<WorkInfo>.queued() = any { it.state == WorkInfo.State.ENQUEUED || it.state == WorkInfo.State.BLOCKED }
                     val cm = context.getSystemService(ConnectivityManager::class.java)
-                    val online = cm.getNetworkCapabilities(cm.activeNetwork)?.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET) == true
+                    val capabilities = cm.getNetworkCapabilities(cm.activeNetwork)
+                    val online = capabilities?.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET) == true &&
+                        capabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_VALIDATED)
                     ActivityStore(context).use {
                         val message = it.get("status")
                         val legacy = when {
@@ -220,7 +222,7 @@ fun CollectorHome(local: LocalStatus?, dashboard: DashboardState, onboarding: Bo
                 if (notice.isNotBlank()) Text(notice, style = MaterialTheme.typography.bodyMedium)
             }
             OutlinedButton(shape = ActivityControlShape, onClick = {
-                runCatching { context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(local.server))) }
+                runCatching { context.startActivity(Intent(Intent.ACTION_VIEW, local.server.toUri())) }
                     .onFailure { notice = "无法打开网页，请检查浏览器是否可用。" }
             }, modifier = Modifier.fillMaxWidth()) { Text("打开完整网页") }
         }

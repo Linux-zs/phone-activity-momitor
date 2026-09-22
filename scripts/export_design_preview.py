@@ -1,10 +1,14 @@
 """Export the local synthetic dashboard as a self-contained file preview."""
 import json
+import os
 from pathlib import Path
 from urllib.request import urlopen
 
 root = Path(__file__).resolve().parents[1]
-base = "http://127.0.0.1:8766"
+port = int(os.environ.get("PHONE_ACTIVITY_PREVIEW_PORT", "8766"))
+if not 1 <= port <= 65535:
+    raise ValueError("PHONE_ACTIVITY_PREVIEW_PORT must be between 1 and 65535")
+base = f"http://127.0.0.1:{port}"
 with urlopen(base + "/", timeout=10) as response:
     html = response.read().decode("utf-8-sig")
 if '<meta name="synthetic-preview" content="true">' not in html:

@@ -29,7 +29,9 @@ def aggregate(events, coverage, now_ms, days=30):
     def mark(start, end):
         for item in daily.values():
             a = int(datetime.fromisoformat(item["date"]).replace(tzinfo=ZONE).timestamp() * 1000)
-            if start < a + DAY and end >= a:
+            # Intervals are half-open. A gap ending exactly at midnight must not
+            # mark the following day as incomplete.
+            if start < a + DAY and end > a:
                 item["incomplete"] = True
 
     def add(start, end, field):

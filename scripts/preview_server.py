@@ -1,5 +1,6 @@
 """Local-only UI verification with synthetic activity. Never deploy this script."""
 from pathlib import Path
+import os
 import sys
 import time
 from datetime import datetime
@@ -53,4 +54,7 @@ with connect(str(db_path)) as db:
             db.execute("INSERT INTO snapshots(received,captured,covered_until,battery,charging,network,permission,diagnostic) VALUES (?,?,?,?,?,?,?,?)",
                        (captured, captured, captured, battery, int(charging), "wifi", 1, "ok"))
     db.execute("INSERT INTO snapshots(received,captured,covered_until,battery,charging,network,permission,diagnostic) VALUES (?,?,?,?,?,?,?,?)", (now, now, now, 68, 0, "wifi", 1, "ok"))
-uvicorn.run(app, host="127.0.0.1", port=8766, access_log=False)
+port = int(os.environ.get("PHONE_ACTIVITY_PREVIEW_PORT", "8766"))
+if not 1 <= port <= 65535:
+    raise ValueError("PHONE_ACTIVITY_PREVIEW_PORT must be between 1 and 65535")
+uvicorn.run(app, host="127.0.0.1", port=port, access_log=False)

@@ -61,6 +61,9 @@ class Sync(BaseModel):
 def create_app(config=None, db_path=None):
     if config is None:
         config = json.loads(Path(os.environ.get("ACTIVITY_CONFIG", "/etc/phone-activity/secrets.json")).read_text())
+    upload_hash = config.get("upload_hash") if isinstance(config, dict) else None
+    if not isinstance(upload_hash, str) or len(upload_hash) != 64 or any(c not in "0123456789abcdef" for c in upload_hash):
+        raise ValueError("ACTIVITY_CONFIG must contain a SHA-256 upload_hash")
     db_path = str(db_path or os.environ.get("ACTIVITY_DB", "/var/lib/phone-activity/activity.db"))
     initialize(db_path)
 
@@ -105,6 +108,11 @@ def create_app(config=None, db_path=None):
 
     @app.get("/healthz")
     def health():
+        try:
+            with connect(db_path) as db:
+                db.execute("SELECT 1").fetchone()
+        except Exception as exc:
+            raise HTTPException(503, "database unavailable") from exc
         return {"status": "ok"}
 
     @app.get("/login")
